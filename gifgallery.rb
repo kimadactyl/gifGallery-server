@@ -22,7 +22,7 @@ def getNextImage
   video = File.basename($images[$pointer])
   extension = File.extname($images[$pointer])
   $pointer += 1
-  { pointer: $pointer, video: "http://#{$SERVER}/#{video}", fileType: extension }
+  { pointer: $pointer, video: "https://#{$SERVER}/#{video}", fileType: extension }
 end
 
 get '/' do

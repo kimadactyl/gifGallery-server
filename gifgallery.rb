@@ -36,6 +36,9 @@ get '/image' do
 end
 
 get '/image.json' do
+  headers 'Access-Control-Allow-Origin' => '*'
+  headers 'Access-Control-Allow-Headers' => 'Authorization,Accepts,Content-Type,X-CSRF-Token,X-Requested-With'
+  headers 'Access-Control-Allow-Methods' => 'GET'
   content_type :json
   getNextImage.to_json
 end

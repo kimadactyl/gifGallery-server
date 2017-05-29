@@ -1,0 +1,63 @@
+<html>
+<head>
+  <title>Jolly Interesting Files</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+    #image {
+      /*background-image: url('<%= file %>');
+      background-size: 100%;
+      background-repeat: no-repeat;*/
+      width: 100%;
+    }
+    .big {
+      display: inline-block;
+      width: 200px;
+      height: 100px;
+    }
+    form {
+      display: inline;
+    }
+  </style>
+</head>
+<body>
+  <video id="image" src="<%= file %>" loop></video>
+  <script src="/javascript/screenfull.js"></script>
+  <script>
+    function loadImage() {
+      var xmlhttp = new XMLHttpRequest();
+
+      xmlhttp.onreadystatechange = function() {
+        if (xmlhttp.readyState == XMLHttpRequest.DONE ) {
+         if (xmlhttp.status == 200) {
+          // response = xmlhttp.responseText.json()
+          new_image = JSON.parse(xmlhttp.responseText).video;
+          el.setAttribute("src", new_image);
+          el.play();
+         }
+         else if (xmlhttp.status == 400) {
+          alert('There was an error 400');
+         }
+         else {
+           alert('something else other than 200 was returned');
+         }
+        }
+      };
+      xmlhttp.open("GET", "/image.json", true);
+      xmlhttp.send();
+    }
+
+    var el = document.getElementById('image');
+    el.play();
+
+    el.addEventListener('click', function() {
+      loadImage();
+    	if (screenfull.enabled) {
+    		screenfull.request(el);
+    	}
+    });
+  </script>
+</body>
+</html>

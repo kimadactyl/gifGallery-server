@@ -3,9 +3,9 @@ require 'json'
 require 'socket'
 
 # Set server IP dynamically presuming we're on the first 192.168.1.* connection
-$SERVER = Socket.ip_address_list.map{ |n| n.ip_address}.select{ |n| n =~ /192\.168\.[0-1]\.[0-9]*/ }.first + ":4567"
+# $SERVER = Socket.ip_address_list.map{ |n| n.ip_address}.select{ |n| n =~ /192\.168\.[0-1]\.[0-9]*/ }.first + ":4567"
 $DIR = Dir.pwd
-puts "Running on #{$SERVER} at #{$DIR}"
+# puts "Running on #{$SERVER} at #{$DIR}"
 
 def load_images
   Dir["#{$DIR}/public/*"].select {|x| x =~ /.*\.(mp4)/ }

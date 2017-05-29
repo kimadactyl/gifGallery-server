@@ -23,13 +23,15 @@ def getNextImage
 end
 
 get '/' do
-  '<h1>Gif Gallery Server</h1>'
+  "<h1>Gif Gallery Server</h1>"
+  "<p><a href='./image'>Request an image</a></p>"
+  "<p><a href='./image.json'>Request JSON info for an image</a></p>"
 end
 
 # Alternate method to consider
-# get '/image' do
-#   send_file(getNextImage[:video], :disposition => 'inline')
-# end
+get '/image' do
+  send_file(getNextImage[:video], :disposition => 'inline')
+end
 
 get '/image.json' do
   content_type :json

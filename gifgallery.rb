@@ -1,40 +1,57 @@
 require 'sinatra'
 require 'json'
 require 'socket'
+require 'streamio-ffmpeg'
+require 'fastimage'
 
 # Set server IP dynamically presuming we're on the first 192.168.1.* connection
 # $SERVER = Socket.ip_address_list.map{ |n| n.ip_address}.select{ |n| n =~ /192\.168\.[0-1]\.[0-9]*/ }.first + ":4567"
 $DIR = Dir.pwd
 # puts "Running on #{$SERVER} at #{$DIR}"
 
-def load_images
-  Dir["#{$DIR}/public/videos/*"].select {|x| x =~ /.*\.(gif|mp4)/ }
+def load_videos
+  files = Dir["#{$DIR}/public/videos/*"].select {|x| x =~ /.*\.(gif|mp4)/ }
+  files.reduce([]) do |acc, f|
+    ext = File.extname(f)
+    if ext == ".mp4"
+      mov = FFMPEG::Movie.new(f)
+      orientation = mov.width > mov.height ? "landscape" : "portrait"
+      acc << { file: File.basename(f), fileType: ext, width: mov.width, height: mov.height, orientation: orientation }
+    elsif ext == ".gif"
+      width, height = FastImage.size(f)
+      orientation = width > height ? "landscape" : "portrait"
+      acc << { file: File.basename(f), fileType: ext, width: width, height: height, orientation: orientation }
+    end
+  end
 end
 
 # Global variables to track state
-$images = load_images
+$videos = load_videos
 $pointer = 0
 
-def getNextImage
-  if $pointer > $images.length - 1
+def getNextVideo
+  if $pointer > $videos.length - 1
     $pointer = 0
   end
-  video = File.basename($images[$pointer])
-  extension = File.extname($images[$pointer])
+  data = $videos[$pointer]
   $pointer += 1
-  { pointer: $pointer, video: "/#{video}", fileType: extension }
+  {
+    pointer: $pointer,
+    video: "/#{data[:file]}",
+    fileType: data[:fileType],
+    width: data[:width],
+    height: data[:height],
+    orientation: data[:orientation]
+  }
 end
 
 get '/' do
-  r =  "<h1>Gif Gallery Server</h1>"
-  r += "<p><a href='./image'>Request an image</a></p>"
-  r += "<p><a href='./image.json'>Request JSON info for an image</a></p>"
-  r += "<p><a href='./reload'>Reload images and see currently loaded videos</a></p>"
+  erb :index
 end
 
 # Alternate method to consider
 get '/image' do
-  video = getNextImage
+  video = getNextVideo
   file = video[:video]
   fileType  = video[:fileType]
   erb :image, locals: { file: file, fileType: fileType }
@@ -45,10 +62,10 @@ get '/image.json' do
   headers 'Access-Control-Allow-Headers' => 'Authorization,Accepts,Content-Type,X-CSRF-Token,X-Requested-With'
   headers 'Access-Control-Allow-Methods' => 'GET'
   content_type :json
-  getNextImage.to_json
+  getNextVideo.to_json
 end
 
 get '/reload' do
-  $images = load_images
-  $images.join(", <br>")
+  $videos = load_videos
+  $videos.join(", <br>")
 end

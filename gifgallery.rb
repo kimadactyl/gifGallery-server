@@ -8,7 +8,7 @@ $DIR = Dir.pwd
 # puts "Running on #{$SERVER} at #{$DIR}"
 
 def load_images
-  Dir["#{$DIR}/public/*"].select {|x| x =~ /.*\.(mp4)/ }
+  Dir["#{$DIR}/public/videos/*"].select {|x| x =~ /.*\.(gif|mp4)/ }
 end
 
 # Global variables to track state
@@ -34,8 +34,10 @@ end
 
 # Alternate method to consider
 get '/image' do
-  file = getNextImage[:video]
-  erb :image, locals: { file: file }
+  video = getNextImage
+  file = video[:video]
+  fileType  = video[:fileType]
+  erb :image, locals: { file: file, fileType: fileType }
 end
 
 get '/image.json' do

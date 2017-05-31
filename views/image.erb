@@ -6,36 +6,38 @@
       margin: 0;
       padding: 0;
     }
-    #image {
-      /*background-image: url('<%= file %>');
-      background-size: 100%;
-      background-repeat: no-repeat;*/
+    #container, #video, #gif {
       width: 100%;
     }
-    .big {
-      display: inline-block;
-      width: 200px;
-      height: 100px;
-    }
-    form {
-      display: inline;
+    .disabled {
+      display: none;
     }
   </style>
 </head>
 <body>
-  <video id="image" src="<%= file %>" loop></video>
+  <div id="container">
+    <video id="video" src="" loop></video>
+    <img id="gif" src="" />
+  </div>
   <script src="/javascript/screenfull.js"></script>
   <script>
-    function loadImage() {
+    // Elements to interact with
+    var container = document.getElementById('container');
+    var videoTag  = document.getElementById('video');
+    var gifTag    = document.getElementById('gif');
+
+    // Load a new image via AJAX
+    function loadVideo() {
       var xmlhttp = new XMLHttpRequest();
 
       xmlhttp.onreadystatechange = function() {
         if (xmlhttp.readyState == XMLHttpRequest.DONE ) {
          if (xmlhttp.status == 200) {
           // response = xmlhttp.responseText.json()
-          new_image = JSON.parse(xmlhttp.responseText).video;
-          el.setAttribute("src", new_image);
-          el.play();
+          response = JSON.parse(xmlhttp.responseText)
+          video = response.video;
+          fileType = response.fileType;
+          updateVideoTag(video, fileType);
          }
          else if (xmlhttp.status == 400) {
           alert('There was an error 400');
@@ -49,13 +51,33 @@
       xmlhttp.send();
     }
 
-    var el = document.getElementById('image');
-    el.play();
+    // Get the correct tag for this video
+    function updateVideoTag(file, fileType) {
+      if(fileType == ".gif") {
+        videoTag.classList.add('disabled');
+        gifTag.classList.remove('disabled');
+        gifTag.setAttribute("src", "/videos" + file);
+      } else if(fileType == ".mp4") {
+        gifTag.classList.add('disabled');
+        videoTag.classList.remove('disabled');
+        videoTag.setAttribute("src", "/videos" + file);
+        videoTag.play();
+      } else {
+        return false;
+      }
+    }
 
-    el.addEventListener('click', function() {
-      loadImage();
+    // On load
+    updateVideoTag("<%= file %>", "<%= fileType %>");
+
+    if("<%= fileType %>" == ".mp4") {
+      videoTag.play();
+    }
+
+    container.addEventListener('click', function() {
+      loadVideo();
     	if (screenfull.enabled) {
-    		screenfull.request(el);
+    		screenfull.request(container);
     	}
     });
   </script>

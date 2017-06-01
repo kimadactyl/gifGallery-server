@@ -27,17 +27,35 @@ def load_videos
 end
 
 # Global variables to track state
-$videos = load_videos
+$all_videos = load_videos
+$videos = load_videos.dup
+$all_landscape_videos = $all_videos.dup.select{ |v| v[:orientation] == "landscape" }
+$landscape_videos = $all_landscape_videos.dup
+$all_portrait_videos = $all_videos.dup.select{ |v| v[:orientation] == "portrait" }
+$portrait_videos = $all_portrait_videos.dup
 
 def getNextVideo(orientation = false)
-  if $videos.length == 0
-    $videos = $all_videos.dup
+  data = []
+  if orientation == "landscape"
+    if $landscape_videos.length == 0
+      $landscape_videos = $all_landscape_videos.dup
+    end
+    data = $landscape_videos.find{ |v| v[:orientation] == "landscape" }
+    $landscape_videos.delete(data)
+  elsif orientation == "portrait"
+    if $portrait_videos.length == 0
+      $portrait_videos = $all_portrait_videos.dup
+    end
+    data = $portrait_videos.find{ |v| v[:orientation] == "portrait" }
+    $portrait_videos.delete(data)
+  else
+    if $videos.length == 0
+      $videos = $all_videos.dup
+    end
+    data = $videos.first
+    $videos.delete(data)
   end
-  if orientation
-    $videos.find{ |v| v[:orientation] == orientation }
-  end
-  data = $videos.first
-  $videos.delete(data)
+  puts data
   {
     video: "/#{data[:file]}",
     fileType: data[:fileType],
@@ -52,19 +70,27 @@ get '/' do
 end
 
 # Alternate method to consider
-get '/image' do
-  video = getNextVideo
+get '/image/?:o?' do
+  if params[:o]
+    orientation = "#{params[:o]}"
+    video = getNextVideo(orientation)
+    puts "oriented"
+  else
+    orientation = false
+    video = getNextVideo
+    puts "not"
+  end
   file = video[:video]
   fileType  = video[:fileType]
-  erb :image, locals: { file: file, fileType: fileType }
+  erb :image, locals: { file: file, fileType: fileType, orientation: orientation }
 end
 
-get '/image.json' do
+get '/newimage/?:o?' do
   headers 'Access-Control-Allow-Origin' => '*'
   headers 'Access-Control-Allow-Headers' => 'Authorization,Accepts,Content-Type,X-CSRF-Token,X-Requested-With'
   headers 'Access-Control-Allow-Methods' => 'GET'
   content_type :json
-  getNextVideo.to_json
+  getNextVideo(params[:o]).to_json
 end
 
 get '/reload' do

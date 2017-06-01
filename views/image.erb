@@ -6,29 +6,30 @@
       margin: 0;
       padding: 0;
     }
-    #container, #video, #gif {
+    #video, #gif {
       width: 100%;
     }
     .disabled {
       display: none;
+      visibility: hidden;
     }
   </style>
 </head>
 <body>
-  <div id="container">
-    <video id="video" src="" loop></video>
-    <img id="gif" src="" />
-  </div>
+  <video id="video" src="" loop></video>
+  <img id="gif" src="" />
   <script src="/javascript/screenfull.js"></script>
   <script>
     // Elements to interact with
     var container = document.getElementById('container');
     var videoTag  = document.getElementById('video');
     var gifTag    = document.getElementById('gif');
+    var activeTag = ""
 
     // Load a new image via AJAX
     function loadVideo() {
       var xmlhttp = new XMLHttpRequest();
+      var fileType = "";
 
       xmlhttp.onreadystatechange = function() {
         if (xmlhttp.readyState == XMLHttpRequest.DONE ) {
@@ -57,11 +58,13 @@
         videoTag.classList.add('disabled');
         gifTag.classList.remove('disabled');
         gifTag.setAttribute("src", "/videos" + file);
+        activeTag = gifTag;
       } else if(fileType == ".mp4") {
         gifTag.classList.add('disabled');
         videoTag.classList.remove('disabled');
         videoTag.setAttribute("src", "/videos" + file);
         videoTag.play();
+        activeTag = videoTag;
       } else {
         return false;
       }
@@ -69,16 +72,24 @@
 
     // On load
     updateVideoTag("<%= file %>", "<%= fileType %>");
-
     if("<%= fileType %>" == ".mp4") {
       videoTag.play();
     }
 
-    container.addEventListener('click', function() {
+    // Add a listener to each tag.
+    // Fullscreen request has to be here + duplicated for Reasons.
+    gifTag.addEventListener('click', function() {
       loadVideo();
-    	if (screenfull.enabled) {
-    		screenfull.request(container);
-    	}
+      if (screenfull.enabled) {
+        screenfull.request(container);
+      }
+    });
+
+    videoTag.addEventListener('click', function() {
+      loadVideo();
+      if (screenfull.enabled) {
+        screenfull.request(container);
+      }
     });
   </script>
 </body>

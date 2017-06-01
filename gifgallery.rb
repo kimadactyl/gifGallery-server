@@ -4,9 +4,10 @@ require 'socket'
 require 'streamio-ffmpeg'
 require 'fastimage'
 
+$DIR = Dir.pwd
+
 # Set server IP dynamically presuming we're on the first 192.168.1.* connection
 # $SERVER = Socket.ip_address_list.map{ |n| n.ip_address}.select{ |n| n =~ /192\.168\.[0-1]\.[0-9]*/ }.first + ":4567"
-$DIR = Dir.pwd
 # puts "Running on #{$SERVER} at #{$DIR}"
 
 def load_videos
@@ -27,16 +28,17 @@ end
 
 # Global variables to track state
 $videos = load_videos
-$pointer = 0
 
-def getNextVideo
-  if $pointer > $videos.length - 1
-    $pointer = 0
+def getNextVideo(orientation = false)
+  if $videos.length == 0
+    $videos = $all_videos.dup
   end
-  data = $videos[$pointer]
-  $pointer += 1
+  if orientation
+    $videos.find{ |v| v[:orientation] == orientation }
+  end
+  data = $videos.first
+  $videos.delete(data)
   {
-    pointer: $pointer,
     video: "/#{data[:file]}",
     fileType: data[:fileType],
     width: data[:width],
